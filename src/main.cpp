@@ -46,7 +46,7 @@ int main(){
   lenc = 0;
   renc = 0;
   gyro = PI;
-  mode = PathfinderMode::BackForward;
+  mode = PathfinderMode::FrontReverse;
 
   //////////////////////////////////////////
   // Generate trajectory

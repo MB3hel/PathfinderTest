@@ -39,8 +39,8 @@ EncoderFollower createEncoderFollower(int trajectoryLen, PathfinderMode mode);
 double followEncoder(EncoderConfig c, EncoderFollower *follower, Segment *trajectory, int trajecotryLength, int encoderTicks, PathfinderMode mode);
 
 // These will drive reverse with back of robot
-double pathfinder_follow_encoder_back_reverse(EncoderConfig c, EncoderFollower *follower, Segment *trajectory, int trajectory_length, int encoder_tick);
-double pathfinder_follow_encoder2_back_reverse(EncoderConfig c, EncoderFollower *follower, Segment s, Segment lastSegment, int trajectory_length, int encoder_tick);
+double pathfinder_follow_encoder_reverse(EncoderConfig c, EncoderFollower *follower, Segment *trajectory, int trajectory_length, int encoder_tick);
+double pathfinder_follow_encoder2_reverse(EncoderConfig c, EncoderFollower *follower, Segment s, Segment lastSegment, int trajectory_length, int encoder_tick);
 
 } // namespace pathfindertools
 } // namespace team2655
