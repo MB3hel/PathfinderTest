@@ -14,6 +14,8 @@ const double WHEELBASE_WIDTH = .6;
 const double MAX_VELOCITY = 5;
 const double TIMESTEP = 0.02;
 
+const PathfinderMode mode = PathfinderMode::FrontForward;
+
 // SimulatedEncoder position
 int lenc = 0, renc = 0;
 
@@ -21,6 +23,7 @@ int simulateDrive(double lPercent, double rPercent){
   lenc += ((TIMESTEP * (lPercent * MAX_VELOCITY)) / WHEEL_DIAMETER / PI) * TICKS;
   renc += ((TIMESTEP * (rPercent * MAX_VELOCITY)) / WHEEL_DIAMETER / PI) * TICKS;
   std::cout << "Drive: " << lPercent << "," << rPercent << std::endl;
+  std::cout << "Encoders: " << lenc << "," << renc << std::endl << std::endl;
 }
 
 int main(){
@@ -49,15 +52,15 @@ int main(){
   EncoderConfig rightcfg = { renc, TICKS, WHEEL_DIAMETER * PI,
                          1.0, 0.0, 0.0, 1.0 / MAX_VELOCITY, 0.0};
 
-  EncoderFollower leftFollower = pathfindertools::createEncoderFollower(length, false, false);
-  EncoderFollower rightFollower = pathfindertools::createEncoderFollower(length, false, false);
+  EncoderFollower leftFollower = pathfindertools::createEncoderFollower(length, mode);
+  EncoderFollower rightFollower = pathfindertools::createEncoderFollower(length, mode);
 
   std::cout << "Generated. Starting to follow." << std::endl;
 
   int stopCounter = 0;
   while(true){
-    double l = pathfindertools::pathfinder_follow_encoder_reverse(leftcfg, &leftFollower, leftTrajectory, length, lenc);
-    double r = pathfindertools::pathfinder_follow_encoder_reverse(rightcfg, &rightFollower, rightTrajectory, length, renc);
+    double l = pathfindertools::followEncoder(leftcfg, &leftFollower, leftTrajectory, length, lenc, mode);
+    double r = pathfindertools::followEncoder(rightcfg, &rightFollower, rightTrajectory, length, renc, mode);
     simulateDrive(l, r);
 
     if(std::abs(l) <= 0.05 && std::abs(r) <= 0.05)

@@ -20,6 +20,9 @@ Driving with back in reverse order
 */
 
 namespace team2655{
+
+enum class PathfinderMode { FrontForward, BackForward, FrontReverse, BackReverse };
+
 namespace pathfindertools{
 
 /**
@@ -31,12 +34,13 @@ namespace pathfindertools{
  *                will configure to follow from last point to first point
  * @return The EncoderFollower to be used to follow the Segment array
  */
-EncoderFollower createEncoderFollower(int trajectoryLen, bool front = true, bool forward = true);
+EncoderFollower createEncoderFollower(int trajectoryLen, PathfinderMode mode);
 
+double followEncoder(EncoderConfig c, EncoderFollower *follower, Segment *trajectory, int trajecotryLength, int encoderTicks, PathfinderMode mode);
 
 // These will drive reverse with back of robot
-double pathfinder_follow_encoder_reverse(EncoderConfig c, EncoderFollower *follower, Segment *trajectory, int trajectory_length, int encoder_tick);
-double pathfinder_follow_encoder2_reverse(EncoderConfig c, EncoderFollower *follower, Segment s, Segment lastSegment, int trajectory_length, int encoder_tick);
+double pathfinder_follow_encoder_back_reverse(EncoderConfig c, EncoderFollower *follower, Segment *trajectory, int trajectory_length, int encoder_tick);
+double pathfinder_follow_encoder2_back_reverse(EncoderConfig c, EncoderFollower *follower, Segment s, Segment lastSegment, int trajectory_length, int encoder_tick);
 
 } // namespace pathfindertools
 } // namespace team2655
