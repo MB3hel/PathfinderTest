@@ -1,6 +1,7 @@
 #include <iostream>
 #include <thread>
 #include <chrono>
+#include <fstream>
 
 #include <pathfinder.h>
 #include <team2655/pftools.hpp>
@@ -12,30 +13,59 @@ const double WHEEL_DIAMETER = 0.1;
 const double WHEELBASE_WIDTH = .6;
 
 const double MAX_VELOCITY = 5;
-const double TIMESTEP = 0.02;
+const double TIMESTEP = 0.02;             // dt
+
+std::ofstream *datafile = nullptr;
 
 PathfinderMode mode;
 
 // SimulatedEncoder position
 int lenc = 0, renc = 0;
 double gyro = 0;
+double x = 0, y = 0;
+
+
+void printHeader(std::ostream &ostr){
+  ostr << "PathfinderMode: " << (int)mode << std::endl;
+  ostr << "LeftPercent,RightPercent,LeftEncoder,RightEncoder,Gyro,X,Y" << std::endl;
+}
+
+void printStatus(std::ostream &ostr, double lPercent, double rPercent){
+  ostr << lPercent << "," << rPercent << "," << lenc << "," << renc << 
+               "," << gyro << "," << x << "," << y << std::endl;
+}
 
 int simulateDrive(double lPercent, double rPercent){
+
+  static bool first = true;
+  if(first){
+    first = false;
+    printHeader(std::cout);
+    printHeader(*datafile);
+  }
+
   // Calculate distances, velocities, and change in heading
   double dsLeft = TIMESTEP * (lPercent * MAX_VELOCITY);
   double dsRight = TIMESTEP * (rPercent * MAX_VELOCITY);
   double lvel = lPercent * MAX_VELOCITY;
   double rvel = rPercent * MAX_VELOCITY;
   double dTheta = ((rvel - lvel) / WHEELBASE_WIDTH) * TIMESTEP;
+
   // Adjust simulated sensors
   lenc += (dsLeft / WHEEL_DIAMETER / PI) * TICKS;
   renc += (dsRight / WHEEL_DIAMETER / PI) * TICKS;
   gyro += dTheta;
 
-  // Print information
-  std::cout << "Drive: " << lPercent << "," << rPercent << std::endl;
-  std::cout << "Encoders: " << lenc << "," << renc << std::endl;
-  std::cout << "Gyro: " << gyro * 180 / PI << std::endl << std::endl;
+  // Adjust simulated position
+  double dx = (((rvel + lvel) / 2) * cos(gyro)) * TIMESTEP;
+  double dy = (((rvel + lvel) / 2) * sin(gyro)) * TIMESTEP;
+
+  x += dx;
+  y += dy;
+
+  printStatus(std::cout, lPercent, rPercent);
+  if(datafile != nullptr)
+    printStatus(*datafile, lPercent, rPercent);
 }
 
 int main(){
@@ -45,8 +75,17 @@ int main(){
   //////////////////////////////////////////
   lenc = 0;
   renc = 0;
-  gyro = PI;
-  mode = PathfinderMode::FrontReverse;
+  gyro = 0;
+  mode = PathfinderMode::FrontForward;
+  x = 0;
+  y = 0;
+
+  datafile = new std::ofstream("output.txt");
+  if(!datafile->is_open()){
+    std::cerr << "Could not open 'output.txt'." << std::endl;
+    delete datafile;
+    datafile = nullptr;
+  }
 
   //////////////////////////////////////////
   // Generate trajectory
@@ -82,7 +121,7 @@ int main(){
   EncoderFollower leftFollower = pathfindertools::createEncoderFollower(length, mode);
   EncoderFollower rightFollower = pathfindertools::createEncoderFollower(length, mode);
 
-  std::cout << "Generated. Starting to follow." << std::endl;
+  std::cout << "Generated. Starting to follow." << std::endl << std::endl;
 
   int stopCounter = 0;
   while(true){
@@ -110,6 +149,6 @@ int main(){
     std::this_thread::sleep_for(std::chrono::milliseconds((int)(TIMESTEP * 1000)));
   }
 
-  std::cout << "Done" << std::endl;
+  std::cout << std::endl << "Done" << std::endl;
 
 }
