@@ -12,7 +12,7 @@ using namespace team2655;
 
 
 // Change these settings to control the simulation
-PathfinderMode mode = PathfinderMode::BackForward;
+PathfinderMode mode = PathfinderMode::BackReverse;
 Waypoint points[] = {
   {0, 0, 0},
   {5, 2.5, 0}
@@ -168,29 +168,21 @@ int main(){
   // Mode based settings
   //////////////////////////////////////////
   if(mode == PathfinderMode::FrontReverse){
-    lenc = 0;
-    renc = 0;
-    gyro = PI;
-    x = 5;
-    y = 2.5;
+    gyro = points[0].angle + PI;
+    x = points[pointCount - 1].x;
+    y = points[pointCount - 1].y;
   }else if (mode == PathfinderMode::BackReverse){
-    lenc = 0;
-    renc = 0;
-    gyro = 0;
-    x = 5;
-    y = 2.5;
+    gyro = points[0].angle;
+    x = points[pointCount - 1].x;
+    y = points[pointCount - 1].y;
   }else if(mode == PathfinderMode::FrontForward){
-    lenc = 0;
-    renc = 0;
-    gyro = 0;
-    x = 0;
-    y = 0;
+    gyro = points[0].angle;
+    x = points[0].x;
+    y = points[0].y;
   }else{
-    lenc = 0;
-    renc = 0;
-    gyro = PI;
-    x = 0;
-    y = 0;
+    gyro = points[0].angle + PI;
+    x = points[0].x;
+    y = points[0].y;
   }
 
   //////////////////////////////////////////
