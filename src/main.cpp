@@ -10,6 +10,7 @@
 
 using namespace team2655;
 
+const int PADDING = 50; // px border
 const int WIN_WIDTH = 600;
 const int WIN_HEIGHT = 600;
 const int SCALE = 60;  // px per meter
@@ -63,9 +64,18 @@ void drawRobot(){
   SDL_SetRenderDrawColor( renderer, 255, 255, 255, 255 );
   SDL_RenderClear( renderer );
 
+  SDL_Rect border;
+  border.x = PADDING;
+  border.y = PADDING;
+  border.w = WIN_WIDTH - 2 * PADDING;
+  border.h = WIN_HEIGHT - 2 * PADDING;
+  SDL_SetRenderDrawColor( renderer, 0, 0, 0, 255 );
+  SDL_RenderDrawLine(renderer, 0, WIN_HEIGHT - PADDING, WIN_WIDTH, WIN_HEIGHT - PADDING);
+  SDL_RenderDrawLine(renderer, PADDING, 0, PADDING, WIN_HEIGHT);
+
   SDL_Rect bounds;
-  bounds.x = rectx;
-  bounds.y = recty;
+  bounds.x = rectx + PADDING;
+  bounds.y = recty - PADDING;
   bounds.h = WHEELBASE_WIDTH * SCALE;
   bounds.w = WHEELBASE_DEPTH * SCALE;
 
@@ -75,6 +85,8 @@ void drawRobot(){
   SDL_Rect r;
   r.x = 0; r.y = 0; r.w = WHEELBASE_DEPTH * SCALE; r.h = WHEELBASE_WIDTH * SCALE;
   SDL_RenderFillRect( renderer, &r);
+  SDL_SetRenderDrawColor( renderer, 0, 255, 0, 255 );
+  SDL_RenderDrawLine(renderer, bounds.w, bounds.h / 2.0, bounds.w - 10, bounds.h / 2.0);
 
   // Copy the texture onto the window
   SDL_SetRenderTarget(renderer, NULL);
@@ -136,9 +148,9 @@ int main(){
   lenc = 0;
   renc = 0;
   gyro = 0;
-  mode = PathfinderMode::FrontForward;
-  x = 0;
-  y = 0;
+  mode = PathfinderMode::BackReverse;
+  x = 5;
+  y = 2.5;
 
   //////////////////////////////////////////
   // Setup datafile for logging
