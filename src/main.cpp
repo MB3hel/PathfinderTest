@@ -145,12 +145,34 @@ int main(){
   //////////////////////////////////////////
   // Settings
   //////////////////////////////////////////
-  lenc = 0;
-  renc = 0;
-  gyro = PI;
-  mode = PathfinderMode::FrontReverse;
-  x = 5;
-  y = 2.5;
+  mode = PathfinderMode::BackReverse;
+
+  // Mode based settings
+  if(mode == PathfinderMode::FrontReverse){
+    lenc = 0;
+    renc = 0;
+    gyro = PI;
+    x = 5;
+    y = 2.5;
+  }else if (mode == PathfinderMode::BackReverse){
+    lenc = 0;
+    renc = 0;
+    gyro = 0;
+    x = 5;
+    y = 2.5;
+  }else if(mode == PathfinderMode::FrontForward){
+    lenc = 0;
+    renc = 0;
+    gyro = 0;
+    x = 0;
+    y = 0;
+  }else{
+    lenc = 0;
+    renc = 0;
+    gyro = PI;
+    x = 0;
+    y = 0;
+  }
 
   //////////////////////////////////////////
   // Setup datafile for logging
@@ -231,7 +253,7 @@ int main(){
 
     double turn = 0.8 * (-1.0/80.0) * angle_difference;
 
-    simulateDrive(l, r, angle_difference);
+    simulateDrive(l + turn, r - turn, angle_difference);
 
     drawRobot();
 
