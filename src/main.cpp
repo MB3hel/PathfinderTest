@@ -10,19 +10,32 @@
 
 using namespace team2655;
 
-const int PADDING = 50; // px border
-const int WIN_WIDTH = 600;
-const int WIN_HEIGHT = 600;
-const int SCALE = 60;  // px per meter
 
-const int TICKS = 1024; // ticks per revolution
-const double WHEEL_DIAMETER = 0.1;
+// Change these settings to control the simulation
+PathfinderMode mode = PathfinderMode::BackForward;
+Waypoint points[] = {
+  {0, 0, 0},
+  {5, 2.5, 0}
+};
+const int pointCount = sizeof(points) / sizeof(Waypoint);
 const double WHEELBASE_WIDTH = .6;
 
 const double WHEELBASE_DEPTH = 0.8; // Only used for drawing
 
 const double MAX_VELOCITY = 5;
+const double MAX_ACCEL = 10;
+const double MAX_JERK = 50;
 const double TIMESTEP = 0.02;             // dt
+
+// Drawing settings
+
+const int PADDING = 50; // px border
+const int WIN_WIDTH = 600;
+const int WIN_HEIGHT = 600;
+const int SCALE = 60;  // px per meter
+
+const int TICKS = 1024; // simulated encoder ticks per revolution
+const double WHEEL_DIAMETER = 0.1;
 
 bool closed = false;
 
@@ -34,9 +47,8 @@ SDL_Renderer *renderer;
 SDL_Texture *robotTexture;
 SDL_Event e;
 
-PathfinderMode mode;
 
-// SimulatedEncoder position
+// Simulated sensors and position
 int lenc = 0, renc = 0;
 double gyro = 0;
 double x = 0, y = 0;
@@ -54,7 +66,7 @@ void handleSDLEvents(){
   }
 }
 
-void drawRobot(){
+void drawFrame(){
   double rectx = (x - WHEELBASE_DEPTH / 2.0) * SCALE;
   double recty = (y + WHEELBASE_WIDTH / 2.0) * SCALE;
   // Mirror y axis (pathfinder uses bottom left as 0,0 but window coords use top left)
@@ -79,6 +91,17 @@ void drawRobot(){
   bounds.h = WHEELBASE_WIDTH * SCALE;
   bounds.w = WHEELBASE_DEPTH * SCALE;
 
+  // Draw a point at each waypoint
+  SDL_SetRenderDrawColor( renderer, 0, 0, 0, 255 );
+  for(int i = 0; i < pointCount; ++i){
+    SDL_Rect pt;
+    pt.x = (points[i].x * SCALE - 2) + PADDING;
+    pt.y = std::abs(WIN_HEIGHT - (points[i].y * SCALE + 2) - PADDING);
+    pt.w = 5;
+    pt.h = 5;
+    SDL_RenderFillRect(renderer, &pt);
+  }
+
   // Drawing on the robot texture
   SDL_SetRenderTarget(renderer, robotTexture);
   SDL_SetRenderDrawColor( renderer, 0, 0, 255, 255 );
@@ -91,7 +114,6 @@ void drawRobot(){
   // Copy the texture onto the window
   SDL_SetRenderTarget(renderer, NULL);
   SDL_RenderCopyEx(renderer, robotTexture, NULL, &bounds, -r2d(gyro), NULL, SDL_FLIP_NONE);
-
 
   // Render the frame
   SDL_RenderPresent( renderer );
@@ -143,11 +165,8 @@ int simulateDrive(double lPercent, double rPercent, double angle_difference){
 int main(){
 
   //////////////////////////////////////////
-  // Settings
-  //////////////////////////////////////////
-  mode = PathfinderMode::BackForward;
-
   // Mode based settings
+  //////////////////////////////////////////
   if(mode == PathfinderMode::FrontReverse){
     lenc = 0;
     renc = 0;
@@ -191,11 +210,10 @@ int main(){
   
   std::cout << "Generating path..." << std::endl;
   
-  Waypoint points[2];
-  points[0] = { 0, 0, 0 };
-  points[1] = { 5, 2.5, 0 };
+  std::cout << "Point count: " << pointCount << std::endl;
+
   TrajectoryCandidate candidate;
-  pathfinder_prepare(points, 2, FIT_HERMITE_CUBIC, PATHFINDER_SAMPLES_HIGH, TIMESTEP, MAX_VELOCITY, 10.0, 60.0, &candidate);
+  pathfinder_prepare(points, pointCount, FIT_HERMITE_CUBIC, PATHFINDER_SAMPLES_HIGH, TIMESTEP, MAX_VELOCITY, MAX_ACCEL, MAX_JERK, &candidate);
   int length = candidate.length;
 
   // Array of Segments (the trajectory points) to store the trajectory in
@@ -252,7 +270,7 @@ int main(){
 
     simulateDrive(l + turn, r - turn, angle_difference);
 
-    drawRobot();
+    drawFrame();
 
     if(std::abs(l) <= 0.05 && std::abs(r) <= 0.05)
       stopCounter++;
