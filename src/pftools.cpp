@@ -10,6 +10,14 @@ EncoderFollower pathfindertools::createEncoderFollower(int trajectoryLen, Pathfi
     }
 }
 
+void pathfindertools::trajetorySwapByMode(PathfinderMode mode, Segment **left, Segment **right){
+    if(mode == PathfinderMode::BackForward || mode == PathfinderMode::FrontReverse){
+        Segment *tmp = *left;
+        *left = *right;
+        *right = tmp;
+    }
+}
+
 double pathfindertools::followEncoder(EncoderConfig c, EncoderFollower *follower, Segment *trajectory, int trajecotryLength, int encoderTicks, PathfinderMode mode){
     if(mode == PathfinderMode::FrontForward){
         return pathfinder_follow_encoder(c, follower, trajectory, trajecotryLength, encoderTicks);

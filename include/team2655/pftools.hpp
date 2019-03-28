@@ -36,6 +36,8 @@ namespace pathfindertools{
  */
 EncoderFollower createEncoderFollower(int trajectoryLen, PathfinderMode mode);
 
+void trajetorySwapByMode(PathfinderMode mode, Segment **left, Segment **right);
+
 double followEncoder(EncoderConfig c, EncoderFollower *follower, Segment *trajectory, int trajecotryLength, int encoderTicks, PathfinderMode mode);
 
 // These will drive reverse with back of robot

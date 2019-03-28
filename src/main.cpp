@@ -145,7 +145,7 @@ int main(){
   //////////////////////////////////////////
   // Settings
   //////////////////////////////////////////
-  mode = PathfinderMode::BackReverse;
+  mode = PathfinderMode::BackForward;
 
   // Mode based settings
   if(mode == PathfinderMode::FrontReverse){
@@ -211,6 +211,9 @@ int main(){
   // originally generated trajectory
   pathfinder_modify_tank(trajectory, length, leftTrajectory, rightTrajectory, WHEELBASE_WIDTH);
 
+  // Swap the left and right trajectories if required by the chosen mode
+  pathfindertools::trajetorySwapByMode(mode, &leftTrajectory, &rightTrajectory);
+
   //////////////////////////////////////////
   // Follow trajectory
   //////////////////////////////////////////
@@ -235,15 +238,9 @@ int main(){
   int stopCounter = 0;
   while(!closed){
 
-    double l, r;
-    if(mode == PathfinderMode::BackForward || mode == PathfinderMode::FrontReverse){
-      // Swap left and right trajectories
-      l = pathfindertools::followEncoder(leftcfg, &leftFollower, rightTrajectory, length, lenc, mode);
-      r = pathfindertools::followEncoder(rightcfg, &rightFollower, leftTrajectory, length, renc, mode);
-    }else{
-      l = pathfindertools::followEncoder(leftcfg, &leftFollower, leftTrajectory, length, lenc, mode);
-      r = pathfindertools::followEncoder(rightcfg, &rightFollower, rightTrajectory, length, renc, mode);
-    }
+
+    double l = pathfindertools::followEncoder(leftcfg, &leftFollower, leftTrajectory, length, lenc, mode);
+    double r = pathfindertools::followEncoder(rightcfg, &rightFollower, rightTrajectory, length, renc, mode);
 
     double angle_difference = r2d(leftFollower.heading) - r2d(gyro);    // Make sure to bound this from -180 to 180, otherwise you will get super large values
     angle_difference = std::fmod(angle_difference, 360.0);
