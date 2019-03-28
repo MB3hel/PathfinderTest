@@ -18,6 +18,8 @@ const int TICKS = 1024; // ticks per revolution
 const double WHEEL_DIAMETER = 0.1;
 const double WHEELBASE_WIDTH = .6;
 
+const double WHEELBASE_DEPTH = 0.8; // Only used for drawing
+
 const double MAX_VELOCITY = 5;
 const double TIMESTEP = 0.02;             // dt
 
@@ -48,6 +50,25 @@ void handleSDLEvents(){
         break;
     }
   }
+}
+
+void drawRobot(){
+  double rectx = (x - WHEELBASE_DEPTH / 2.0) * SCALE;
+  double recty = (y + WHEELBASE_WIDTH / 2.0) * SCALE;
+  // Mirror y axis (pathfinder uses bottom left as 0,0 but window coords use top left)
+  recty = std::abs(WIN_HEIGHT - recty);
+
+  SDL_SetRenderDrawColor( renderer, 255, 255, 255, 255 );
+  SDL_RenderClear( renderer );
+  SDL_SetRenderDrawColor( renderer, 0, 0, 255, 255 );
+
+  SDL_Rect r;
+  r.x = rectx;
+  r.y = recty;
+  r.h = WHEELBASE_WIDTH * SCALE;
+  r.w = WHEELBASE_DEPTH * SCALE;
+  SDL_RenderFillRect( renderer, &r);
+  SDL_RenderPresent( renderer );
 }
 
 void printHeader(std::ostream &ostr){
@@ -184,6 +205,8 @@ int main(){
     double turn = 0.8 * (-1.0/80.0) * angle_difference;
 
     simulateDrive(l + turn, r - turn, angle_difference);
+
+    drawRobot();
 
     if(std::abs(l) <= 0.05 && std::abs(r) <= 0.05)
       stopCounter++;
