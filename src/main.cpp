@@ -147,8 +147,8 @@ int main(){
   //////////////////////////////////////////
   lenc = 0;
   renc = 0;
-  gyro = 0;
-  mode = PathfinderMode::BackReverse;
+  gyro = PI;
+  mode = PathfinderMode::FrontReverse;
   x = 5;
   y = 2.5;
 
@@ -231,7 +231,7 @@ int main(){
 
     double turn = 0.8 * (-1.0/80.0) * angle_difference;
 
-    simulateDrive(l + turn, r - turn, angle_difference);
+    simulateDrive(l, r, angle_difference);
 
     drawRobot();
 

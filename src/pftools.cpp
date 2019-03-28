@@ -17,10 +17,14 @@ double pathfindertools::followEncoder(EncoderConfig c, EncoderFollower *follower
         return -1 * pathfinder_follow_encoder_reverse(c, follower, trajectory, trajecotryLength, encoderTicks);
     }else if(mode == PathfinderMode::BackForward){
         encoderTicks *= -1;
-        return -1 * pathfinder_follow_encoder(c, follower, trajectory, trajecotryLength, encoderTicks);
+        double res = -1 * pathfinder_follow_encoder(c, follower, trajectory, trajecotryLength, encoderTicks);
+        follower->heading += PI;
+        return res;
     }else if(mode == PathfinderMode::FrontReverse){
         encoderTicks *= -1;
-        return pathfinder_follow_encoder_reverse(c, follower, trajectory, trajecotryLength, encoderTicks);
+        double res = pathfinder_follow_encoder_reverse(c, follower, trajectory, trajecotryLength, encoderTicks);
+        follower->heading += PI;
+        return res;
     }
 }
 
