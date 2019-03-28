@@ -21,11 +21,14 @@ const double WHEELBASE_WIDTH = .6;
 const double MAX_VELOCITY = 5;
 const double TIMESTEP = 0.02;             // dt
 
+bool closed = false;
+
 std::ofstream *datafile = nullptr;
 
 // SDL Window and renderer
 SDL_Window *window;
 SDL_Renderer *renderer;
+SDL_Event e;
 
 PathfinderMode mode;
 
@@ -34,6 +37,18 @@ int lenc = 0, renc = 0;
 double gyro = 0;
 double x = 0, y = 0;
 
+void handleSDLEvents(){
+  while ( SDL_PollEvent( &e ) != 0 ) {
+    switch ( e.type ) {
+      case SDL_QUIT:
+        closed = true; break;
+      case SDL_WINDOWEVENT:
+        if(e.window.event == SDL_WINDOWEVENT_CLOSE)
+          closed = true;
+        break;
+    }
+  }
+}
 
 void printHeader(std::ostream &ostr){
   ostr << "PathfinderMode: " << (int)mode << std::endl;
@@ -102,15 +117,11 @@ int main(){
   }
 
   //////////////////////////////////////////
-  // Setup SDL and create a window
-  //////////////////////////////////////////
-  //SDL_Init(SDL_INIT_VIDEO);
-  //window = SDL_CreateWindow( "PathfinderTest", SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED, WIN_WIDTH, WIN_HEIGHT, SDL_WINDOW_SHOWN );
-  //renderer = SDL_CreateRenderer( window, -1, SDL_RENDERER_ACCELERATED );
-
-  //////////////////////////////////////////
   // Generate trajectory
   //////////////////////////////////////////
+  
+  std::cout << "Generating path..." << std::endl;
+  
   Waypoint points[2];
   points[0] = { 0, 0, 0 };
   points[1] = { 5, 2.5, 0 };
@@ -144,8 +155,15 @@ int main(){
 
   std::cout << "Generated. Starting to follow." << std::endl << std::endl;
 
+  //////////////////////////////////////////
+  // Setup SDL and create a window
+  //////////////////////////////////////////
+  SDL_Init(SDL_INIT_VIDEO | SDL_INIT_EVENTS);
+  window = SDL_CreateWindow( "PathfinderTest", SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED, WIN_WIDTH, WIN_HEIGHT, SDL_WINDOW_SHOWN );
+  renderer = SDL_CreateRenderer( window, -1, SDL_RENDERER_ACCELERATED );
+
   int stopCounter = 0;
-  while(true){
+  while(!closed){
 
     double l, r;
     if(mode == PathfinderMode::BackForward || mode == PathfinderMode::FrontReverse){
@@ -175,12 +193,19 @@ int main(){
     if(stopCounter >= 20)
       break;
 
-    std::this_thread::sleep_for(std::chrono::milliseconds((int)(TIMESTEP * 1000)));
+    
+    handleSDLEvents();  
+    SDL_Delay(TIMESTEP * 1000);
   }
 
-  std::cout << std::endl << "Done" << std::endl;
+  if(stopCounter >= 20)
+    std::cout << std::endl << "Done" << std::endl;
+  else
+    std::cout << std::endl << "Canceled by user" << std::endl;
 
-  //SDL_Quit();
+  while(!closed)
+    handleSDLEvents();
 
+  SDL_Quit();
 
 }
