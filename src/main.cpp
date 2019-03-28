@@ -30,6 +30,7 @@ std::ofstream *datafile = nullptr;
 // SDL Window and renderer
 SDL_Window *window;
 SDL_Renderer *renderer;
+SDL_Texture *robotTexture;
 SDL_Event e;
 
 PathfinderMode mode;
@@ -58,16 +59,29 @@ void drawRobot(){
   // Mirror y axis (pathfinder uses bottom left as 0,0 but window coords use top left)
   recty = std::abs(WIN_HEIGHT - recty);
 
+  // Drawing on window
   SDL_SetRenderDrawColor( renderer, 255, 255, 255, 255 );
   SDL_RenderClear( renderer );
-  SDL_SetRenderDrawColor( renderer, 0, 0, 255, 255 );
 
+  SDL_Rect bounds;
+  bounds.x = rectx;
+  bounds.y = recty;
+  bounds.h = WHEELBASE_WIDTH * SCALE;
+  bounds.w = WHEELBASE_DEPTH * SCALE;
+
+  // Drawing on the robot texture
+  SDL_SetRenderTarget(renderer, robotTexture);
+  SDL_SetRenderDrawColor( renderer, 0, 0, 255, 255 );
   SDL_Rect r;
-  r.x = rectx;
-  r.y = recty;
-  r.h = WHEELBASE_WIDTH * SCALE;
-  r.w = WHEELBASE_DEPTH * SCALE;
+  r.x = 0; r.y = 0; r.w = WHEELBASE_DEPTH * SCALE; r.h = WHEELBASE_WIDTH * SCALE;
   SDL_RenderFillRect( renderer, &r);
+
+  // Copy the texture onto the window
+  SDL_SetRenderTarget(renderer, NULL);
+  SDL_RenderCopyEx(renderer, robotTexture, NULL, &bounds, -r2d(gyro), NULL, SDL_FLIP_NONE);
+
+
+  // Render the frame
   SDL_RenderPresent( renderer );
 }
 
@@ -182,6 +196,7 @@ int main(){
   SDL_Init(SDL_INIT_VIDEO | SDL_INIT_EVENTS);
   window = SDL_CreateWindow( "PathfinderTest", SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED, WIN_WIDTH, WIN_HEIGHT, SDL_WINDOW_SHOWN );
   renderer = SDL_CreateRenderer( window, -1, SDL_RENDERER_ACCELERATED );
+  robotTexture = SDL_CreateTexture(renderer, SDL_PIXELFORMAT_RGBA8888, SDL_TEXTUREACCESS_TARGET, WHEELBASE_DEPTH * SCALE, WHEELBASE_WIDTH * SCALE);
 
   int stopCounter = 0;
   while(!closed){
@@ -229,6 +244,7 @@ int main(){
   while(!closed)
     handleSDLEvents();
 
+  SDL_DestroyRenderer(renderer);
   SDL_Quit();
 
 }
