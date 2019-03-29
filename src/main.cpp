@@ -129,7 +129,7 @@ void printStatus(std::ostream &ostr, double lPercent, double rPercent, double an
           "," << r2d(gyro) << "," << x << "," << y <<  "," << angle_difference << std::endl;
 }
 
-int simulateDrive(double lPercent, double rPercent, double angle_difference){
+void simulateDrive(double lPercent, double rPercent, double angle_difference){
 
   static bool first = true;
   if(first){
@@ -162,7 +162,7 @@ int simulateDrive(double lPercent, double rPercent, double angle_difference){
     printStatus(*datafile, lPercent, rPercent, angle_difference);
 }
 
-int main(){
+int main(int argc, char *argv[]){
 
   //////////////////////////////////////////
   // Mode based settings
@@ -287,5 +287,7 @@ int main(){
 
   SDL_DestroyRenderer(renderer);
   SDL_Quit();
+
+  return 0;
 
 }
