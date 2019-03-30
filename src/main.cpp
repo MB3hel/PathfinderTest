@@ -14,19 +14,43 @@ const double WHEELBASE_WIDTH = .6;
 const double MAX_VELOCITY = 5;
 const double TIMESTEP = 0.02;
 
-const PathfinderMode mode = PathfinderMode::FrontForward;
+PathfinderMode mode;
 
 // SimulatedEncoder position
 int lenc = 0, renc = 0;
+double gyro = 0;
 
 int simulateDrive(double lPercent, double rPercent){
-  lenc += ((TIMESTEP * (lPercent * MAX_VELOCITY)) / WHEEL_DIAMETER / PI) * TICKS;
-  renc += ((TIMESTEP * (rPercent * MAX_VELOCITY)) / WHEEL_DIAMETER / PI) * TICKS;
+  // Calculate distances, velocities, and change in heading
+  double dsLeft = TIMESTEP * (lPercent * MAX_VELOCITY);
+  double dsRight = TIMESTEP * (rPercent * MAX_VELOCITY);
+  double lvel = lPercent * MAX_VELOCITY;
+  double rvel = rPercent * MAX_VELOCITY;
+  double dTheta = ((rvel - lvel) / WHEELBASE_WIDTH) * TIMESTEP;
+  // Adjust simulated sensors
+  lenc += (dsLeft / WHEEL_DIAMETER / PI) * TICKS;
+  renc += (dsRight / WHEEL_DIAMETER / PI) * TICKS;
+  gyro += dTheta;
+
+  // Print information
   std::cout << "Drive: " << lPercent << "," << rPercent << std::endl;
-  std::cout << "Encoders: " << lenc << "," << renc << std::endl << std::endl;
+  std::cout << "Encoders: " << lenc << "," << renc << std::endl;
+  std::cout << "Gyro: " << gyro * 180 / PI << std::endl << std::endl;
 }
 
 int main(){
+
+  //////////////////////////////////////////
+  // Settings
+  //////////////////////////////////////////
+  lenc = 0;
+  renc = 0;
+  gyro = PI;
+  mode = PathfinderMode::BackReverse;
+
+  //////////////////////////////////////////
+  // Generate trajectory
+  //////////////////////////////////////////
   Waypoint points[2];
   points[0] = { 0, 0, 0 };
   points[1] = { 5, 2.5, 0 };
@@ -47,6 +71,9 @@ int main(){
   // originally generated trajectory
   pathfinder_modify_tank(trajectory, length, leftTrajectory, rightTrajectory, WHEELBASE_WIDTH);
 
+  //////////////////////////////////////////
+  // Follow trajectory
+  //////////////////////////////////////////
   EncoderConfig leftcfg = { lenc, TICKS, WHEEL_DIAMETER * PI,
                          1.0, 0.0, 0.0, 1.0 / MAX_VELOCITY, 0.0};
   EncoderConfig rightcfg = { renc, TICKS, WHEEL_DIAMETER * PI,
