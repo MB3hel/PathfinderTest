@@ -46,7 +46,7 @@ int main(){
   lenc = 0;
   renc = 0;
   gyro = PI;
-  mode = PathfinderMode::BackReverse;
+  mode = PathfinderMode::BackForward;
 
   //////////////////////////////////////////
   // Generate trajectory
@@ -86,8 +86,17 @@ int main(){
 
   int stopCounter = 0;
   while(true){
-    double l = pathfindertools::followEncoder(leftcfg, &leftFollower, leftTrajectory, length, lenc, mode);
-    double r = pathfindertools::followEncoder(rightcfg, &rightFollower, rightTrajectory, length, renc, mode);
+
+    double l, r;
+    if(mode == PathfinderMode::BackForward || mode == PathfinderMode::FrontReverse){
+      // Swap left and right trajectories
+      l = pathfindertools::followEncoder(leftcfg, &leftFollower, rightTrajectory, length, lenc, mode);
+      r = pathfindertools::followEncoder(rightcfg, &rightFollower, leftTrajectory, length, renc, mode);
+    }else{
+      l = pathfindertools::followEncoder(leftcfg, &leftFollower, leftTrajectory, length, lenc, mode);
+      r = pathfindertools::followEncoder(rightcfg, &rightFollower, rightTrajectory, length, renc, mode);
+    }
+
     simulateDrive(l, r);
 
     if(std::abs(l) <= 0.05 && std::abs(r) <= 0.05)
