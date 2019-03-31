@@ -3,10 +3,16 @@
 #include <chrono>
 #include <fstream>
 
+#include <SDL.h>
+
 #include <pathfinder.h>
 #include <team2655/pftools.hpp>
 
 using namespace team2655;
+
+const int WIN_WIDTH = 600;
+const int WIN_HEIGHT = 600;
+const int SCALE = 60;  // px per meter
 
 const int TICKS = 1024; // ticks per revolution
 const double WHEEL_DIAMETER = 0.1;
@@ -16,6 +22,10 @@ const double MAX_VELOCITY = 5;
 const double TIMESTEP = 0.02;             // dt
 
 std::ofstream *datafile = nullptr;
+
+// SDL Window and renderer
+SDL_Window *window;
+SDL_Renderer *renderer;
 
 PathfinderMode mode;
 
@@ -27,15 +37,15 @@ double x = 0, y = 0;
 
 void printHeader(std::ostream &ostr){
   ostr << "PathfinderMode: " << (int)mode << std::endl;
-  ostr << "LeftPercent,RightPercent,LeftEncoder,RightEncoder,Gyro,X,Y" << std::endl;
+  ostr << "LeftPercent,RightPercent,LeftEncoder,RightEncoder,Gyro,X,Y,HeadingError" << std::endl;
 }
 
-void printStatus(std::ostream &ostr, double lPercent, double rPercent){
+void printStatus(std::ostream &ostr, double lPercent, double rPercent, double angle_difference){
   ostr << lPercent << "," << rPercent << "," << lenc << "," << renc << 
-               "," << gyro << "," << x << "," << y << std::endl;
+          "," << r2d(gyro) << "," << x << "," << y <<  "," << angle_difference << std::endl;
 }
 
-int simulateDrive(double lPercent, double rPercent){
+int simulateDrive(double lPercent, double rPercent, double angle_difference){
 
   static bool first = true;
   if(first){
@@ -63,9 +73,9 @@ int simulateDrive(double lPercent, double rPercent){
   x += dx;
   y += dy;
 
-  printStatus(std::cout, lPercent, rPercent);
+  printStatus(std::cout, lPercent, rPercent, angle_difference);
   if(datafile != nullptr)
-    printStatus(*datafile, lPercent, rPercent);
+    printStatus(*datafile, lPercent, rPercent, angle_difference);
 }
 
 int main(){
@@ -80,12 +90,23 @@ int main(){
   x = 0;
   y = 0;
 
-  datafile = new std::ofstream("output.txt");
+  //////////////////////////////////////////
+  // Setup datafile for logging
+  //////////////////////////////////////////
+
+  datafile = new std::ofstream("output.csv");
   if(!datafile->is_open()){
-    std::cerr << "Could not open 'output.txt'." << std::endl;
+    std::cerr << "Could not open 'output.csv'." << std::endl;
     delete datafile;
     datafile = nullptr;
   }
+
+  //////////////////////////////////////////
+  // Setup SDL and create a window
+  //////////////////////////////////////////
+  //SDL_Init(SDL_INIT_VIDEO);
+  //window = SDL_CreateWindow( "PathfinderTest", SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED, WIN_WIDTH, WIN_HEIGHT, SDL_WINDOW_SHOWN );
+  //renderer = SDL_CreateRenderer( window, -1, SDL_RENDERER_ACCELERATED );
 
   //////////////////////////////////////////
   // Generate trajectory
@@ -136,7 +157,15 @@ int main(){
       r = pathfindertools::followEncoder(rightcfg, &rightFollower, rightTrajectory, length, renc, mode);
     }
 
-    simulateDrive(l, r);
+    double angle_difference = r2d(leftFollower.heading) - r2d(gyro);    // Make sure to bound this from -180 to 180, otherwise you will get super large values
+    angle_difference = std::fmod(angle_difference, 360.0);
+    if (std::abs(angle_difference) > 180.0) {
+      angle_difference = (angle_difference > 0) ? angle_difference - 360 : angle_difference + 360;
+    }
+
+    double turn = 0.8 * (-1.0/80.0) * angle_difference;
+
+    simulateDrive(l + turn, r - turn, angle_difference);
 
     if(std::abs(l) <= 0.05 && std::abs(r) <= 0.05)
       stopCounter++;
@@ -150,5 +179,8 @@ int main(){
   }
 
   std::cout << std::endl << "Done" << std::endl;
+
+  //SDL_Quit();
+
 
 }
