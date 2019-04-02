@@ -12,7 +12,7 @@ using namespace team2655;
 
 
 // Change these settings to control the simulation
-PathfinderMode mode = PathfinderMode::BackReverse;
+PathfinderMode mode = PathfinderMode::FrontReverse;
 Waypoint points[] = {
   {0, 0, 0},
   {5, 2.5, 0}
@@ -185,6 +185,9 @@ int main(int argc, char *argv[]){
     y = points[0].y;
   }
 
+  lenc = -8000;
+  renc = -15000;
+
   //////////////////////////////////////////
   // Setup datafile for logging
   //////////////////////////////////////////
@@ -227,10 +230,11 @@ int main(int argc, char *argv[]){
   //////////////////////////////////////////
   // Follow trajectory
   //////////////////////////////////////////
-  EncoderConfig leftcfg = { lenc, TICKS, WHEEL_DIAMETER * PI,
-                         1.0, 0.0, 0.0, 1.0 / MAX_VELOCITY, 0.0};
-  EncoderConfig rightcfg = { renc, TICKS, WHEEL_DIAMETER * PI,
-                         1.0, 0.0, 0.0, 1.0 / MAX_VELOCITY, 0.0};
+
+  EncoderConfig leftcfg = pathfindertools::createEncoderConfig(lenc, TICKS, WHEEL_DIAMETER * PI,
+                         1.0, 0.0, 0.0, 1.0 / MAX_VELOCITY, 0.0, mode);
+  EncoderConfig rightcfg = pathfindertools::createEncoderConfig(renc, TICKS, WHEEL_DIAMETER * PI,
+                         1.0, 0.0, 0.0, 1.0 / MAX_VELOCITY, 0.0, mode);
 
   EncoderFollower leftFollower = pathfindertools::createEncoderFollower(length, mode);
   EncoderFollower rightFollower = pathfindertools::createEncoderFollower(length, mode);

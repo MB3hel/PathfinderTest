@@ -25,6 +25,8 @@ enum class PathfinderMode { FrontForward, BackForward, FrontReverse, BackReverse
 
 namespace pathfindertools{
 
+EncoderConfig createEncoderConfig(int encoderPos, int ticksPerRev, double wheelDiameter, double kp, double ki, double kd, double kv, double ka, PathfinderMode mode);
+
 /**
  * Create a pathfinder encoder follower for a specified configuration
  * @param trajectoryLen The length of the Segment array the follower will be used with

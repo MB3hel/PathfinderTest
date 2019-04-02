@@ -2,6 +2,13 @@
 
 using namespace team2655;
 
+EncoderConfig pathfindertools::createEncoderConfig(int encoderPos, int ticksPerRev, double wheelDiameter, double kp, double ki, double kd, double kv, double ka, PathfinderMode mode) {
+	if (mode == PathfinderMode::BackForward || mode == PathfinderMode::FrontReverse) {
+		encoderPos *= -1;
+	}
+	return { encoderPos, ticksPerRev, wheelDiameter, kp, ki, kd, kv, ka };
+}
+
 EncoderFollower pathfindertools::createEncoderFollower(int trajectoryLen, PathfinderMode mode){
     if(mode == PathfinderMode::FrontForward || mode == PathfinderMode::BackForward){
         return {0, 0, 0, 0, 0};
