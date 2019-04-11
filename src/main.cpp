@@ -2,6 +2,7 @@
 #include <thread>
 #include <chrono>
 #include <fstream>
+#include <cmath>
 
 #include <SDL.h>
 
@@ -12,19 +13,19 @@ using namespace team2655;
 
 
 // Change these settings to control the simulation
-PathfinderMode mode = PathfinderMode::FrontReverse;
+PathfinderMode mode = PathfinderMode::FrontForward;
 Waypoint points[] = {
-  {0, 0, 0},
-  {5, 2.5, 0}
+  {0, 1.524, 0},
+  {3.048, 0, d2r(90)}
 };
 const int pointCount = sizeof(points) / sizeof(Waypoint);
-const double WHEELBASE_WIDTH = .6;
+const double WHEELBASE_WIDTH = .635;
 
-const double WHEELBASE_DEPTH = 0.8; // Only used for drawing
+const double WHEELBASE_DEPTH = 0.8128; // Only used for drawing
 
-const double MAX_VELOCITY = 5;
-const double MAX_ACCEL = 10;
-const double MAX_JERK = 50;
+const double MAX_VELOCITY = 1.1938;
+const double MAX_ACCEL = 2.54;
+const double MAX_JERK = 3.81;
 const double TIMESTEP = 0.02;             // dt
 
 // Drawing settings
@@ -35,7 +36,7 @@ const int WIN_HEIGHT = 600;
 const int SCALE = 60;  // px per meter
 
 const int TICKS = 1024; // simulated encoder ticks per revolution
-const double WHEEL_DIAMETER = 0.1;
+const double WHEEL_DIAMETER = 0.1524;
 
 bool closed = false;
 
@@ -146,8 +147,8 @@ void simulateDrive(double lPercent, double rPercent, double angle_difference){
   double dTheta = ((rvel - lvel) / WHEELBASE_WIDTH) * TIMESTEP;
 
   // Adjust simulated sensors
-  lenc += (dsLeft / WHEEL_DIAMETER / PI) * TICKS;
-  renc += (dsRight / WHEEL_DIAMETER / PI) * TICKS;
+  lenc += ((dsLeft / WHEEL_DIAMETER / PI) * TICKS) * 0.95;
+  renc += ((dsRight / WHEEL_DIAMETER / PI) * TICKS);
   gyro += dTheta;
 
   // Adjust simulated position
@@ -263,12 +264,13 @@ int main(int argc, char *argv[]){
     }
 
     double turn = 0.8 * (-1.0/80.0) * angle_difference;
-
+      
+      
     simulateDrive(l + turn, r - turn, angle_difference);
 
     drawFrame();
 
-    if(std::abs(l) <= 0.05 && std::abs(r) <= 0.05)
+    if(std::abs(l) <= 0.01 && std::abs(r) <= 0.01)
       stopCounter++;
     else
       stopCounter = 0;
