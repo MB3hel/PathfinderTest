@@ -11,17 +11,15 @@
 
 using namespace team2655;
 
-
 // Change these settings to control the simulation
+const double WHEELBASE_WIDTH = .635;
+const double WHEELBASE_DEPTH = 0.8128; // Only used for drawing
 PathfinderMode mode = PathfinderMode::FrontForward;
 Waypoint points[] = {
-  {0, 1.524, 0},
-  {3.048, 0, d2r(90)}
+  {-WHEELBASE_DEPTH/2, 1.524, 0},
+  {3.3655, WHEELBASE_DEPTH/2, d2r(90)}
 };
 const int pointCount = sizeof(points) / sizeof(Waypoint);
-const double WHEELBASE_WIDTH = .635;
-
-const double WHEELBASE_DEPTH = 0.8128; // Only used for drawing
 
 const double MAX_VELOCITY = 1.1938;
 const double MAX_ACCEL = 2.54;
@@ -147,7 +145,7 @@ void simulateDrive(double lPercent, double rPercent, double angle_difference){
   double dTheta = ((rvel - lvel) / WHEELBASE_WIDTH) * TIMESTEP;
 
   // Adjust simulated sensors
-  lenc += ((dsLeft / WHEEL_DIAMETER / PI) * TICKS) * 0.95;
+  lenc += ((dsLeft / WHEEL_DIAMETER / PI) * TICKS);
   renc += ((dsRight / WHEEL_DIAMETER / PI) * TICKS);
   gyro += dTheta;
 
@@ -164,7 +162,7 @@ void simulateDrive(double lPercent, double rPercent, double angle_difference){
 }
 
 int main(int argc, char *argv[]){
-
+  
   //////////////////////////////////////////
   // Mode based settings
   //////////////////////////////////////////
@@ -186,6 +184,7 @@ int main(int argc, char *argv[]){
     y = points[0].y;
   }
 
+  // Random encoder start positions
   lenc = -8000;
   renc = -15000;
 
@@ -250,9 +249,12 @@ int main(int argc, char *argv[]){
   renderer = SDL_CreateRenderer( window, -1, SDL_RENDERER_ACCELERATED );
   robotTexture = SDL_CreateTexture(renderer, SDL_PIXELFORMAT_RGBA8888, SDL_TEXTUREACCESS_TARGET, WHEELBASE_DEPTH * SCALE, WHEELBASE_WIDTH * SCALE);
 
+  // Draw and wait 1 second before starting the path
+  drawFrame();
+  std::this_thread::sleep_for(std::chrono::milliseconds(1000));
+
   int stopCounter = 0;
   while(!closed){
-
 
     double l = pathfindertools::followEncoder(leftcfg, &leftFollower, leftTrajectory, length, lenc, mode);
     double r = pathfindertools::followEncoder(rightcfg, &rightFollower, rightTrajectory, length, renc, mode);
@@ -265,6 +267,7 @@ int main(int argc, char *argv[]){
 
     double turn = 0.8 * (-1.0/80.0) * angle_difference;
       
+    turn *= 3;
       
     simulateDrive(l + turn, r - turn, angle_difference);
 
